@@ -49,7 +49,7 @@ Similarly to the precipitation indices, these files will need to be downloaded a
 
 The regions analysed in this work were formed through the accumulation of climatologically related Natural Resource Management (NRM) regions in Australia. They are described further and can be downloaded from the Climate Change in Australia web site:
 
-https://www.climatechangeinaustralia.gov.au/en/overview/methodology/nrm-regions/[^nrm_regions]
+<https://www.climatechangeinaustralia.gov.au/en/overview/methodology/nrm-regions/>[^nrm_regions]
 
 [^nrm_regions]: NRM Regions. (n.d.). Climate Change In Australia. Retrieved 16 August 2024, from https://www.climatechangeinaustralia.gov.au/en/overview/methodology/nrm-regions/
 
