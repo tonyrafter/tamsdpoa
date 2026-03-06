@@ -318,8 +318,8 @@ summarise_filtered_ts <- function(df = ts_gtN_80pc_period,
 #' @export
 add_temp_covariate <- function(df,
                                covariate = c("global", "SH"),
-                               temperature_file = c("./data/HadCRUT5_1850-2022.global_t.global.0112.19811.raw.txt",
-                                                    "./data/HadCRUT5_1850-2022.global_t.sh.0112.35323.raw.txt"),
+                               temperature_file = c("./data/temperature/HadCRUT5_1850-2022.global_t.global.0112.19811.raw.txt",
+                                                    "./data/temperature/HadCRUT5_1850-2022.global_t.sh.0112.35323.raw.txt"),
                                #TODO make sure that code that calls this function has a valid temperature_file set
                                smoothing_period = 11) {
   

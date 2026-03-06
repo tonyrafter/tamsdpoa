@@ -37,7 +37,7 @@ if (testing) {
                 help = "Time length of precipitation duration in hours (1, 3, 6, 12, 24)", metavar = "character"),
     make_option(c("-r", "--recordlength"), type = "integer", default = NULL,
                 help = "Minimum record length", metavar = "character"),
-    make_option(c("-f", "--firstyear"), type = "integer", default = 1981,
+    make_option(c("-f", "--firstyear"), type = "integer", default = 1961,
                 help = "First year of analysis window", metavar = "character"),
     make_option(c("-l", "--lastyear"), type = "integer", default = 2015,
                 help = "Last year of analysis window", metavar = "character"),
@@ -203,19 +203,6 @@ if (period_type == "Annual") {
   if (period_type == "Seasonal") {
     period_type_plotting <- sym("Season")
   }
-
-  # p2 <-
-  #   n_annmax_count_gtN_80pc %>%
-  #   # convert months to character labels
-  #   mutate(month_or_season = month(!!period_type_plotting, label = TRUE)) %>%
-  #   ggplot(aes(x = month_or_season, y = n_stations, fill = factor(month_or_season))) +
-  #   geom_col(show.legend = FALSE) +
-  #   scale_fill_viridis_d() +
-  #   scale_y_continuous(expand = c(0.01,0)) +
-  #   labs(x = period_type_plotting, y = "Number of Stations",
-  #       title = paste0(period_type," number of valid stations"))
-  # # p2
-  # # ggsave(paste0("station_histogram_",dur,"hr_",period_type,"_",first_year,"-",last_year,".png"), p2)
 }
 
 valid_stations_hist_10y <- ts_gtN_80pc_stations_10y %>% ggplot(aes(x = Year)) +
@@ -263,7 +250,7 @@ ggsave(paste0("results/station-years_histogram_1900-2020_",period_type,".png"), 
 ts_gtN_80pc_period <- valid_years_in_period(df = ts_gtN_80pc)
 ts_gtN_80pc_period_temperature <- ts_gtN_80pc_period %>%
   add_temp_covariate(covariate = "global", smoothing_period = 11, 
-                      temperature_file = "./data/HadCRUT5_1850-2022.global_t.global.0112.19811.raw.txt")
+                      temperature_file = "./data/temperature/HadCRUT5_1850-2022.global_t.global.0112.19811.raw.txt")
 
 # - summary stats per station/series -> e.g. rx1hr_summary_gt20y_1981_2015
 # Create summary stats tables for each station:
@@ -422,7 +409,6 @@ if (plotting == TRUE) {
 
   dom_list <- c("AUS")
   sig_list <- c(TRUE, FALSE)
-  # sig_list <- c(TRUE)
   type_list <- c("magnitude") # c("location", "magnitude")
   trend_type_list <- c("percent_mean") # c("mm", "percent_median", "percent_mean")
   # trend_source_list <- c("temperature")
@@ -485,7 +471,6 @@ if (plotting == TRUE) {
 
               if (trend_source == "year") {
                 input_df <- test_summaries
-                # trendperiod <- "year"
                 trendperiod <- "decade"
 
                 fig <- plot_rxNday_trends(df = input_df,
@@ -529,13 +514,6 @@ if (plotting == TRUE) {
               trend_source_plots_list[[trend_source]] <- fig
               
               rm(fig)
-
-              # factor in:
-              # dom sig type trend_type (mm/percent_median/percent_mean) trend_source (year/temp)
-              # sample file names
-              # map_station_trends-pc_magnitude-mk_1hr_1973-2009_AUS_Annual_min67pc_sig-only.png
-              # map_station_trends_magnitude-mk_1hr_1973-2009_AUS_Annual_min67pc_sig-only.png
-              # map_station_trends-mk_1hr_1973-2009_AUS_Annual_min67pc_sig-only.png
 
               }
             title_plot_list[[plot_title_label]] <- trend_source_plots_list

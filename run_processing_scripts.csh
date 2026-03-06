@@ -164,6 +164,8 @@ if ($?last_year) then
     echo "Last year command line option cannot be greater than final year; setting last_year to final_year ($final_year)"
     echo ""
     set last_year = $final_year
+  else
+    set final_year = $last_year
   endif
   set desc_text = "${desc_text} through to ${last_year}"
 else
