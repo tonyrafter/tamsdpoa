@@ -14,6 +14,10 @@ syd_lat_limits <- c(-36,-31.8)
 seq_lon_limits <- c(150,154)
 seq_lat_limits <- c(-29,-25)
 
+# set default domains:
+domain_list <- c("aus")
+# domain_list <- c("aus", "vic", "syd", "seq")
+
 shapefile_list <- list(
   nrm_clust = "./data/shapefiles/NRM_clusters/NRM_clusters.shp"
   # ,

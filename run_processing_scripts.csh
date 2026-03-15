@@ -10,6 +10,7 @@
 # for testing/debugging:
 # set testing
 
+testing:
 if ($?testing) then    # set your own values here
   echo "Running with specified values in testing mode"
   set run_echo = "echo "
@@ -48,7 +49,7 @@ if ($#argv < 1) then
   set fault
   goto fault
 else
-  set args = ($argv)
+  if (! $?testing) set args = ($argv)
   # echo "n_args: $#argv"
   # echo $args
 endif
@@ -116,8 +117,12 @@ while ($n <= $#args)
       set dt_s = $args[$n]
       breaksw
     case --testing:
+      echo "Running with specified values in testing mode"
+      # remove '--testing' from $arg
+      set args = (`echo $args | sed 's/--testing//'`)
+      # go back to top and re-load vars that can be over-written by command line options
       set testing
-      set run_echo = "echo "
+      goto testing
       breaksw
     default:
       echo "Unknown option: $argv"
@@ -134,7 +139,7 @@ fault:
 if ($?fault) then
 
   echo ""
-  echo " Options: -f|--figures, -t|--tables, -m|--maps, [-s|--start <start_year>], [-e|--end <end_year>], [-p|--period_min <min_period_length>], [-t|--testing]"
+  echo " Options: -f|--figures, -t|--tables, -m|--maps, [-s|--start <start_year>], [-e|--end <end_year>], [-p|--period_min <min_period_length>], [--testing]"
   echo ""
   exit 1
 
@@ -226,6 +231,12 @@ foreach dt ( `seq $dt_s $dt_e` )
             endif
 
             # execute script:
+            if ($?testing) then
+              echo "TESTING ONLY - NOT EXECUTED"
+            else
+              echo "running script:"
+            endif
+            
             $run_echo \
             Rscript processing_and_plotting.R \
               -d $duration \
@@ -244,6 +255,7 @@ foreach dt ( `seq $dt_s $dt_e` )
 
             # echo to a progress log file what was just run:
             if (! $?testing) then
+              echo "echoing the task to processing_progress.log"
               echo "Rscript processing_and_plotting.R -d $duration -p $aggregation -r $record_length -f $start_year -l $end_year -x $min_proportion -s $sig_level -o $script_option " >> processing_progress.log
             endif
 

@@ -1,0 +1,33 @@
+# This CITATION.cff file creates valid citations in software such as
+# GitHub, Zenodo, Zotero etc.
+
+cff-version: 1.2.0
+title: >-
+  Annual and seasonal maxima of sub-daily precipitation
+  accumulations (RxNhr) at observation stations in
+  Australia.
+message: >-
+  If you use this dataset, please cite it using the metadata
+  from this file.
+type: dataset
+authors:
+  - given-names: Tony
+    family-names: Rafter
+    email: tony.rafter@csiro.au
+    affiliation: CSIRO
+    orcid: 'https://orcid.org/0000-0001-5009-7283'
+identifiers:
+  - type: doi
+    value: 10.25919/s398-1p95
+abstract: >-
+  This data collection contains climate indices of annual and seasonal maxima of precipitation of various sub-daily durations at Australian observation stations from 1908 to 2015, based on data from the Australian Bureau of Meteorology. These indices were produced to facilitate analysis of changes over time of observed precipitation extremes over Australia.
+
+  The seasonal/annual maxima indices are known as RxNhr, where N is the number of hours of accumulated precipitation; values of N in this data set are 1, 3, 6, 12 and 24 hours.
+
+  Annual RxNhr indices are the annual maximum value of precipitation recorded in that calendar year. Seasonal RxNhr are the seasonal maximum value of precipitation recorded in that season. (NB: for DJF, the value for December is taken from the previous calendar year.)
+
+  Original data were collected at observation stations via 1-minute Automatic Weather Station or 5-minute pluviograph. These precipitation amounts were accumulated to time series of hourly totals as part of production of the Global Sub-Daily Rainfall Dataset [1,2]. These hourly accumulations were then used in the software listed below [3] to output the indices separately for each collection type.
+
+  Observation station metadata - including location, station start and end date, elevation, and missing data percentage - are contained in the file 'StationMetadata.csv' for each folder. Further statistics calculated for each index on stations meeting minimum 0% and 80% data availability thresholds are contained in files within the 'Summary' folder for each index.
+
+license: CC-BY-4.0

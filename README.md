@@ -1,6 +1,6 @@
 # tamsdpoa
 
-*"Trends in Annual Maximum Sub-daily to Daily Precipitation Over Australia"*
+_**"<u>T</u>rends in <u>A</u>nnual <u>M</u>aximum <u>S</u>ub-daily to <u>D</u>aily <u>P</u>recipitation <u>O</u>ver <u>A</u>ustralia"**_
 
 This repository contains code developed in the production of materials created for and contained in the paper titled *"Trends in Annual Maximum Sub-daily to Daily Precipitation Over Australia"*, published in the journal **JGR: Atmospheres**.
 
@@ -96,7 +96,9 @@ The software used in our work and in the above source paper is provided via Prit
 The software in this repository is used to create the following outputs:
 
 #### Figures:
+
 1. Count over time and geographical distribution of in-situ station observation locations.
+
 2. Map of the Australian Natural Resource Management (NRM) region clusters.
 3. Spatial distribution and magnitude of trends in Rx1hr, expressed as % of the mean station Rx1hr per decade, for the period 1973-2009, shown for annual and broken down by each season.
 4. Summary of proportion of significant positive and negative trends and mean of all trends in annual maxima for each precipitation duration, shown for several time periods.
@@ -110,9 +112,33 @@ The software in this repository is used to create the following outputs:
 ### Processing pipeline
 
 1. Place annual/seasonal maximum precipitation data in the `./data` directory as described above. 
-1. Create Figures 1 and 2 by running `run_processing_scripts.csh --figures`.  
-This produces a station map alongside histogram of station availability over time (Fig 1); and choropleth (filled maps) labelling the regions analysed (Fig 2), and a (bonus!) map showing average trends within those regions.
-1. Calculate and create tables of trend magnitudes, p-values etc. using `run_processing_scripts.csh --tables`, which calls `processing_and_plotting.R` over all specified combinations, e.g. of start and end years (and thus period), accumulation time, block length (annual/seasonal). (These and other options may be set manually within the script.)
-1. Collate the array of tables created in previous step into a single file using `gather_tables.R`.
-1. Use the collated table file to produce the remaining figures using `figure_plotting_4-9.R`. 
-1. Locate figures created in `./results` directory.
+1. Create Figures 1 to 3: 
+   
+    a. Edit `processing_and_plotting.R` to set `testing <- TRUE`. This will use the hard-coded values at the top of the script.  
+
+    b. Run the script to produce Figures 1 and 2, either by
+    - running `Rscript processing_and_plotting.R` at the command line, or
+    - sourcing the script within your R session. 
+
+    c. Edit `processing_and_plotting.R` to change `period_type` to `"Seasonal"`
+
+    d. Run the script to produce Figure 3, either by
+    - running `Rscript processing_and_plotting.R` at the command line, or
+    - sourcing the script within your R session.   
+
+    e. Edit `processing_and_plotting.R` to reset `testing` back to `FALSE`. (This is important for the following step to work.)
+
+1. Create Figures 4 to 9:
+
+    a. Calculate and create tables of trend magnitudes, p-values etc. by running  `run_processing_scripts.csh --tables` from the command line prompt.  
+    This calls `processing_and_plotting.R` over all combinations of start and end years (and thus period), accumulation time, block length (annual/seasonal) and so on. (Note that this is not programmed particularly well(!) and may take several hours to process.)
+    
+    b. Collate the array of tables created in previous step into a single file either by
+      - running `Rscript gather_tables.R` at the command line, or
+      - sourcing the script within your R session.
+    
+    c. Use the collated table file to produce the remaining figures  either by
+      - running `figure_plotting_4-9.R` at the command line, or
+      - sourcing the script within your R session.
+
+Figures created successfully will be located in the `./results` directory.

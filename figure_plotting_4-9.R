@@ -5,6 +5,8 @@ library(paletteer)
 library(scico)
 library(patchwork)
 
+source('./plotting_functions.R')
+
 all_tables_aus_nrm_clust <- vroom(file = "output/combined_tables_aus-nrm_clust_both_0.05.csv",
                     col_types = "cciiidiiddddddiicdiccc") %>%
                       # retain only trends for years:
@@ -113,8 +115,12 @@ ggsave('results/figure5.pdf', plot = fig5, width = 5.5, height = 2.5, units = 'i
 # rx1hr by accumulation
 
 lim_value <- 80   # resubmitted fig 6
-fig6 <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "accum", fill_var = 'mean', dom = "AUS", seas = "Annual", domains = "aus_nrm_clust", rotate_x_labels = 0)
+fig6 <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "accum", 
+  fill_var = 'mean', dom = "AUS", seas = "Annual", domains = "aus_nrm_clust", rotate_x_labels = 0)
+
 ggsave('results/figure6.pdf', plot = fig6, width = 5.5, height = 3)
+
 
 #####   FIG 7
 
@@ -122,21 +128,32 @@ ggsave('results/figure6.pdf', plot = fig6, width = 5.5, height = 3)
 # b) rx24hr by season
 
 # 7a
-p7a <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "season", fill_var = 'mean', dom = "AUS", accum = 1, rotate_x_labels = 30) + theme(legend.position = "none")
+p7a <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "season", 
+  fill_var = 'mean', dom = "AUS", accum = 1, rotate_x_labels = 30) + theme(legend.position = "none")
 # 7b
-p7b <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "season", fill_var = 'mean', dom = "AUS", accum = 24, rotate_x_labels = 30)
+p7b <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "season", 
+  fill_var = 'mean', dom = "AUS", accum = 24, rotate_x_labels = 30)
 
-# resubmitted fig 7:
+# combine into fig 7:
 fig7 <- p7a + p7b + plot_annotation(tag_levels = 'a')
 ggsave('results/figure7.pdf', plot = fig7, width = 5.5, height = 3)
+
 
 #####   FIG 8
 
 # a) rx1hr by NRM region
 # b) rx24hr by NRM region
 
-p8a <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "domain", fill_var = 'mean', seas = "Annual", accum = 1, rotate_x_labels = 45) + theme(legend.position = "none")
-p8b <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "domain", fill_var = 'mean', seas = "Annual", accum = 24, rotate_x_labels = 45)
+p8a <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "domain", 
+  fill_var = 'mean', seas = "Annual", accum = 1, rotate_x_labels = 45) + theme(legend.position = "none")
+p8b <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 10, xtype = 'mid', ytype = 'num_years', title = F, lim_value = lim_value, facet_by = "domain", 
+  fill_var = 'mean', seas = "Annual", accum = 24, rotate_x_labels = 45)
+
+# combine into fig 8:
 fig8 <- p8a + p8b + plot_annotation(tag_levels = 'a')
 ggsave('results/figure8.pdf', plot = fig8, width = 5.5, height = 3)
 
@@ -146,10 +163,13 @@ ggsave('results/figure8.pdf', plot = fig8, width = 5.5, height = 3)
 # a) DJF rx1hr by NRM region
 # b) MAM rx1hr by NRM region
 
-p9a <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 25, xtype = 'mid', ytype = 'num_years', 
-      title = F, lim_value = 150, facet_by = "domain", fill_var = 'mean', seas = "DJF", accum = 1, domains = "aus_nrm_clust", rotate_x_labels = 45) + theme(legend.position = "none")
-p9b <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, covariate = "year", scaling = 25, xtype = 'mid', ytype = 'num_years', 
-      title = F, lim_value = 150, facet_by = "domain", fill_var = 'mean', seas = "MAM", accum = 1, domains = "aus_nrm_clust", rotate_x_labels = 45)
-fig9 <- p9a + p9b + plot_annotation(tag_levels = 'a')
+p9a <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 25, xtype = 'mid', ytype = 'num_years', title = F, lim_value = 150, facet_by = "domain", 
+  fill_var = 'mean', seas = "DJF", accum = 1, domains = "aus_nrm_clust", rotate_x_labels = 45) + theme(legend.position = "none")
+p9b <- trend_matrix_plot_by_domain_binned(all_tables_aus_nrm_clust, 
+  covariate = "year", scaling = 25, xtype = 'mid', ytype = 'num_years', title = F, lim_value = 150, facet_by = "domain", 
+  fill_var = 'mean', seas = "MAM", accum = 1, domains = "aus_nrm_clust", rotate_x_labels = 45)
 
+# combine into fig 9:
+fig9 <- p9a + p9b + plot_annotation(tag_levels = 'a')
 ggsave('results/figure9.pdf', plot = fig9, width = 5.5, height = 3.3)

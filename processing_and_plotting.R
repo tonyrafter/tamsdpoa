@@ -8,24 +8,21 @@ testing <- FALSE
 # testing <- TRUE
 
 if (testing) {
-  #for testing:
-  #period_type defined later
+  print("Testing mode!")
+  period_type <- "Annual"
+  # period_type <- "Seasonal"
   dur <- "1"
-  # record_length <- 20
   record_length <- 0
   proportion <- 67
-  # proportion <- 0
   sig_level <- 0.05
   first_year <- 1973
   last_year <- 2009
-  period_type <- "Annual"
-  # period_type <- "Seasonal"
   plotting <- TRUE
   tables <- FALSE
-  choropleths <- FALSE
-  drivers <- FALSE
+  choropleths <- TRUE
 
 } else {
+  print("Command line mode!")
 
   library(optparse)
 
@@ -47,7 +44,6 @@ if (testing) {
                 help = "Minimum required proportion (%) of years available in analysis window", metavar = "character"),
     make_option(c("-o", "--output"), type = "character", default = "both",
                 help = "Option to specify whether to produce 'figures', 'tables', or 'both' (default)", metavar = "character")
-                # help = "Option to specify whether to produce 'figures', 'tables', or 'both' (default); or alternatively climate drivers ('drivers') or filled maps ('choropleths')", metavar = "character")
   )
 
   opt_parser = OptionParser(option_list=option_list);
@@ -56,26 +52,38 @@ if (testing) {
   if (is.null(opt$period_type)){
     print_help(opt_parser)
     stop("Input 'period_type' argument must be supplied", call.=FALSE)
+  } else {
+    period_type <- opt$period_type
   }
   if (is.null(opt$duration)){
     print_help(opt_parser)
     stop("Source 'duration' argument must be supplied", call.=FALSE)
+  } else {
+    dur <- as.character(opt$duration)
   }
   if (is.null(opt$recordlength)){
       print_help(opt_parser)
     stop("Record length argument must be supplied", call.=FALSE)
+  } else {
+    record_length <- as.character(opt$recordlength)
   }
   if (is.null(opt$firstyear)){
     print_help(opt_parser)
     stop("Input 'firstyear' argument must be supplied", call.=FALSE)
+  } else {
+    first_year <- as.integer(opt$firstyear)
   }
   if (is.null(opt$lastyear)){
     print_help(opt_parser)
     stop("Input 'lastyear' argument must be supplied", call.=FALSE)
+  } else {
+    last_year <- as.integer(opt$lastyear)
   }
   if (is.null(opt$sig_level)){
     print_help(opt_parser)
     stop("Input 'sig_level' argument must be supplied", call.=FALSE)
+  } else {
+    sig_level <- as.double(opt$sig_level)
   }
   if (is.null(opt$proportion)){
     # minimum required proportion not set
@@ -195,62 +203,53 @@ ts_gtN_80pc_stations_10y <- annmax_count_gtN_80pc_10y %>%
       arrange(Station, Year, Season) %>%
       relocate(Year, .after = Station) else . }
 
-# code to plot the number of stations per season
 if (period_type == "Annual") {
-  # do nothing
-  period_type_plotting <- "Annual"
-} else {
-  if (period_type == "Seasonal") {
-    period_type_plotting <- sym("Season")
+  # code to plot the number of stations per season
+  if (period_type == "Annual") {
+    # do nothing
+    period_type_plotting <- "Annual"
+  } else {
+    if (period_type == "Seasonal") {
+      period_type_plotting <- sym("Season")
+    }
   }
+
+  if (plotting == TRUE) {
+    valid_stations_hist_10y <- ts_gtN_80pc_stations_10y %>% ggplot(aes(x = Year)) +
+      geom_histogram(binwidth = 1, fill = "darkorange", alpha = 0.9) +
+      scale_x_continuous(expand = expansion(mult = c(0, 0)), breaks = seq(1900,2020,20)) +
+      scale_y_continuous(expand = expansion(mult = c(0, 0.05)), name = 'Number of stations')+
+      theme_bw(base_size = 7)
+
+    # map of locations of stations and their record lengths
+    annmax_count_gtN_80pc_10y_coords <- left_join(annmax_count_gtN_80pc_10y, select(.data = ts_gtN_80pc, Station, Latitude, Longitude), by = 'Station') %>% unique()
+
+    stations_by_length_10 <- 
+      annmax_count_gtN_80pc_10y_coords %>%
+      filter(n_years >= 10) %>% 
+      ggplot(aes(x = Longitude, y = Latitude, colour = n_years)) + 
+      # "fill" is land colour; "col" is border colour.
+      # Ocean colour needs to be set as background of panel below.
+      annotation_map(map_data("worldHires"), fill = "white", col = "grey25") +
+        geom_point(alpha = 0.65, size = 0.25) +
+      paletteer::scale_colour_paletteer_c("viridis::viridis", direction = -1, limits = c(10,60), oob = scales::oob_squish, 
+            guide = "colbar", name = "Record\nlength\n(years)") +
+      coord_sf(xlim = aus_lon_limits, ylim = aus_lat_limits, expand = FALSE) +
+      theme_bw(base_size = 7)
+
+    stationmap_with_hist10 <- valid_stations_hist_10y + stations_by_length_10 + plot_annotation(tag_levels = 'a')
+    ggsave('results/figure1_stationmap_with_histogram_10y.pdf', plot = stationmap_with_hist10, width = 5.5, height = 2.25, units = 'in')
+
+  }
+
 }
-
-valid_stations_hist_10y <- ts_gtN_80pc_stations_10y %>% ggplot(aes(x = Year)) +
-  geom_histogram(binwidth = 1, fill = "darkorange", alpha = 0.9) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0)), breaks = seq(1900,2020,20)) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), name = 'Number of stations')+
-  theme_bw(base_size = 7)
-
-# map of locations of stations and their record lengths
-annmax_count_gtN_80pc_10y_coords <- left_join(annmax_count_gtN_80pc_10y, select(.data = ts_gtN_80pc, Station, Latitude, Longitude), by = 'Station') %>% unique()
-
-stations_by_length_10 <- 
-  annmax_count_gtN_80pc_10y_coords %>%
-  filter(n_years >= 10) %>% 
-  ggplot(aes(x = Longitude, y = Latitude, colour = n_years)) + 
-  # "fill" is land colour; "col" is border colour.
-  # Ocean colour needs to be set as background of panel below.
-  annotation_map(map_data("worldHires"), fill = "white", col = "grey25") +
-    geom_point(alpha = 0.65, size = 0.25) +
-  paletteer::scale_colour_paletteer_c("viridis::viridis", direction = -1, limits = c(10,60), oob = scales::oob_squish, 
-        guide = "colbar", name = "Record\nlength\n(years)") +
-  coord_sf(xlim = aus_lon_limits, ylim = aus_lat_limits, expand = FALSE) +
-  theme_bw(base_size = 7)
-
-stationmap_with_hist10 <- valid_stations_hist_10y + stations_by_length_10 + plot_annotation(tag_levels = 'a')
-ggsave('results/stationmap_with_histogram_10y.pdf', plot = stationmap_with_hist10, width = 5.5, height = 2.25, units = 'in')
-
-
-p_hist <-
-  ts_gtN_80pc %>% relabel_aggregations(period_type) %>%
-  ggplot(aes(x = Year)) +
-  geom_histogram(binwidth = 1, fill = "darkgreen", alpha = 0.6) +
-  geom_histogram(data = relabel_aggregations(ts_gtN_80pc_stations,period_type),
-                binwidth = 1,fill = "darkorange", alpha = 0.75) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0)), breaks = seq(1900,2020,20)) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), name = "Number of Stations") +
-  theme_bw(base_size = 7) +
-  facet_wrap(period_type_plotting)
-# p_hist
-
-ggsave(paste0("results/station-years_histogram_1900-2020_",period_type,".png"), plot = p_hist)
 
 # - filter time series for set epoch -> e.g. ts_gt20y_80pc_1981_2015
 # this reduces the time series to those stations with adequate years - either via 'n_years' or 'proportion'
 ts_gtN_80pc_period <- valid_years_in_period(df = ts_gtN_80pc)
-ts_gtN_80pc_period_temperature <- ts_gtN_80pc_period %>%
-  add_temp_covariate(covariate = "global", smoothing_period = 11, 
-                      temperature_file = "./data/temperature/HadCRUT5_1850-2022.global_t.global.0112.19811.raw.txt")
+# ts_gtN_80pc_period_temperature <- ts_gtN_80pc_period %>%
+#   add_temp_covariate(covariate = "global", smoothing_period = 11, 
+#                       temperature_file = "./data/temperature/HadCRUT5_1850-2022.global_t.global.0112.19811.raw.txt")
 
 # - summary stats per station/series -> e.g. rx1hr_summary_gt20y_1981_2015
 # Create summary stats tables for each station:
@@ -263,12 +262,12 @@ rx1hr_summary_gtN_period <- summarise_filtered_ts(ts_gtN_80pc_period)
 linear_tests <-
   test_estimates_linear(ts_gtN_80pc_period, trend_type = "year")
 
-linear_tests_temperature <-
-  test_estimates_linear(ts_gtN_80pc_period_temperature,
-                        trend_type = "temperature")
+# linear_tests_temperature <-
+#   test_estimates_linear(ts_gtN_80pc_period_temperature,
+#                         trend_type = "temperature")
 
 mk_tests <- test_estimates_mk(ts_gtN_80pc_period)
-mk_tests_temp <- test_estimates_mk(ts_gtN_80pc_period_temperature)
+# mk_tests_temp <- test_estimates_mk(ts_gtN_80pc_period_temperature)
 
 test_results <- linear_tests %>%
   {if (period_type == "Annual")
@@ -276,11 +275,11 @@ test_results <- linear_tests %>%
   {if (period_type == "Seasonal")
     left_join(., mk_tests, by = c("Station", "year_start", "year_end", "Season")) else . }
 
-test_results_temp <- linear_tests_temperature %>%
-  {if (period_type == "Annual")
-    left_join(., mk_tests_temp, by = c("Station", "year_start", "year_end")) else . } %>%
-  {if (period_type == "Seasonal")
-    left_join(., mk_tests_temp, by = c("Station", "year_start", "year_end", "Season")) else . }
+# test_results_temp <- linear_tests_temperature %>%
+#   {if (period_type == "Annual")
+#     left_join(., mk_tests_temp, by = c("Station", "year_start", "year_end")) else . } %>%
+#   {if (period_type == "Seasonal")
+#     left_join(., mk_tests_temp, by = c("Station", "year_start", "year_end", "Season")) else . }
 
 # join these results with the statistical summary df:
 test_summaries <- test_results %>%
@@ -299,22 +298,22 @@ test_summaries <- test_results %>%
   add_domain_ownership(shapefile_list) %>%
   relabel_aggregations(period_type)
 
-test_summaries_temperature <- test_results_temp %>%
-  {if (period_type == "Annual")
-    arrange(., Station, year_start, year_end) else . } %>%
-  {if (period_type == "Seasonal")
-    arrange(., Station, year_start, year_end, Season) else . } %>%
-  full_join(x = rx1hr_summary_gtN_period) %>%
-  rename(trend = estimate) %>%
-  # add percentage change in trend per degree
-  mutate(trend_pc_mean = trend * 100 / mean,
-        trend_pc_median = trend * 100 / median,
-        .after = trend) %>%
-          add_domain_ownership(shapefile_list) %>%
-  relabel_aggregations(period_type)
+# test_summaries_temperature <- test_results_temp %>%
+#   {if (period_type == "Annual")
+#     arrange(., Station, year_start, year_end) else . } %>%
+#   {if (period_type == "Seasonal")
+#     arrange(., Station, year_start, year_end, Season) else . } %>%
+#   full_join(x = rx1hr_summary_gtN_period) %>%
+#   rename(trend = estimate) %>%
+#   # add percentage change in trend per degree
+#   mutate(trend_pc_mean = trend * 100 / mean,
+#         trend_pc_median = trend * 100 / median,
+#         .after = trend) %>%
+#           add_domain_ownership(shapefile_list) %>%
+#   relabel_aggregations(period_type)
 
 
-
+# print("Processing steps complete!")
 
 
 
@@ -330,9 +329,10 @@ if (tables == TRUE) {
 
   # loop through various combinations of required options:
   # domains; covariate
-  for (cov in c("year", "temperature")) {
+  for (covariate in c("year")) {
+  # for (covariate in c("year", "temperature")) {
 
-    if (cov == "year") {
+    if (covariate == "year") {
       df_test <- test_summaries
       cov_label <- ""
     } else {
@@ -342,26 +342,34 @@ if (tables == TRUE) {
 
     for (d in domain_list) {
 
-      print(paste("Creating tables for domain",toupper(d),"w/ covariate",cov))
+      # print(paste("Creating tables for domain",toupper(d),"w/ covariate",covariate))
+      outfile_domain <- 
+        paste0(basepath,"tables/station_trends-mk",sig_level,cov_label,"_",dur,"hr_",first_year,
+                "-",last_year,"_",toupper(d),"_",period_type,"_min",proportion,"pc.csv")
+      
+      if (file.exists(outfile_domain)) {next}
 
       lonlims <- get(eval(paste0(d,"_lon_limits")))
       latlims <- get(eval(paste0(d,"_lat_limits")))
 
-      test_table <- make_test_table(df_test, covariate = cov, domain = d,
+      test_table <- make_test_table(df_test, covariate = covariate, domain = d,
                                     lon_lims = lonlims, lat_lims = latlims)
-      readr::write_csv(test_table,
-                       file = paste0(
-                         basepath,"tables/station_trends-mk",sig_level,cov_label,
-                         "_",dur,"hr_",first_year,"-",last_year,"_",toupper(d),
-                         "_",period_type,"_min",proportion,"pc.csv"))
+      readr::write_csv(test_table, file = outfile_domain)
 
     }
 
     # Loop through various clusters as defined by shapefiles:
     for (clustering in names(shapefile_list)) {
 
+      outfile_cluster <- 
+        paste0(basepath,"tables/station_trends-mk",sig_level,cov_label,"_",dur,
+                "hr_",first_year,"-",last_year,"_",toupper(clustering),"_",
+                period_type,"_min",proportion,"pc.csv")
+    
+      if (file.exists(outfile_cluster)) {next}
+      
       test_table_cluster <-
-        make_test_table(df_test, covariate = cov, cluster_type = clustering)
+        make_test_table(df_test, covariate = covariate, cluster_type = clustering)
 
 
       # > names(shapefile_list)
@@ -389,11 +397,7 @@ if (tables == TRUE) {
       }
 
 
-      readr::write_csv(test_table_cluster,
-                       file = paste0(
-                         basepath,"tables/station_trends-mk",sig_level,cov_label,
-                         "_",dur,"hr_",first_year,"-",last_year,"_",toupper(clustering),
-                         "_",period_type,"_min",proportion,"pc.csv"))
+      readr::write_csv(test_table_cluster, file = outfile_cluster)
 
     }
   }
@@ -411,9 +415,7 @@ if (plotting == TRUE) {
   sig_list <- c(TRUE, FALSE)
   type_list <- c("magnitude") # c("location", "magnitude")
   trend_type_list <- c("percent_mean") # c("mm", "percent_median", "percent_mean")
-  # trend_source_list <- c("temperature")
-  trend_source_list <- c("year")
-  # trend_source_list <- c("year", "temperature")
+  trend_source_list <- c("year") # c("year", "temperature")
 
   # plots of station trends and significance
   sigtype <- "MK"
@@ -515,7 +517,7 @@ if (plotting == TRUE) {
               
               rm(fig)
 
-              }
+            }
             title_plot_list[[plot_title_label]] <- trend_source_plots_list
           }
           trend_type_plot_list[[trend_type]] <- title_plot_list
@@ -527,76 +529,111 @@ if (plotting == TRUE) {
     dom_plot_list[[dom]] <- sig_plot_list
   }
 
-  if (period_type == "Annual") { 
-    # Save Fig 3a:
-    p3a <- dom_plot_list$AUS$all$magnitude$percent_mean$notitle$year +
-      scale_size_continuous(breaks = seq(0,50,5), labels = seq(0,50,5)) +
-      theme(legend.position="none") 
-    save(p3a, file = "output/fig3a.rda")
-  }
-  if (period_type == "Seasonal") {
-    # Save Fig 3b:
-    p3b <- dom_plot_list$AUS$`sig-only`$magnitude$percent_mean$notitle$year +
-    scale_size_continuous(breaks = seq(0,50,5), labels = seq(0,50,5))
-    save(p3b, file = "output/fig3b.rda")
-  }
+  if (trend_source == "year") {
+    if (period_type == "Annual") { 
+      # Save Fig 3a:
+      p3a <- dom_plot_list$AUS$all$magnitude$percent_mean$notitle$year +
+        scale_size_continuous(breaks = seq(0,50,10), labels = seq(0,50,10)) +
+        theme(legend.position="none") 
+      save(p3a, file = "output/fig3a.rda")
+    }
+    if (period_type == "Seasonal") {
+      # Create Fig 3b:
+      p3b <- dom_plot_list$AUS$`sig-only`$magnitude$percent_mean$notitle$year +
+      scale_size_continuous(breaks = seq(0,50,10), labels = seq(0,50,10))
 
-  if (file.exists("output/fig3a.rda") & file.exists("output/fig3b.rda")) {
+      if (file.exists("output/fig3a.rda")) {
+
+        print("Combining plots to create Fig 3...")
+        
+        # try combining these plots:
+        load("output/fig3a.rda")
+
+        fig3 <- p3a + p3b + plot_annotation(tag_levels = 'a')
+        ggsave("results/figure3.pdf", plot = fig3, width = 5.5, height = 2.25, units = 'in', scale = 2)
+
+        file.remove("output/fig3a.rda")
+
+      } else {
+        save(p3b, file = "output/fig3b.rda")
+      }
+    }
+
+  } else if (trend_source == "temperature") {
+    if (period_type == "Annual") { 
+      # Save Fig 3a for temperature:
+      p3a_temp <- dom_plot_list$AUS$all$magnitude$percent_mean$notitle$temperature +
+        scale_size_continuous(breaks = seq(0,50,5), labels = seq(0,50,5)) +
+        theme(legend.position="none") 
+      save(p3a_temp, file = "output/fig3a_temp.rda")
+    }
+    if (period_type == "Seasonal") {
+      # Save Fig 3b:
+      p3b_temp <- dom_plot_list$AUS$`sig-only`$magnitude$percent_mean$notitle$temperature +
+      scale_size_continuous(breaks = seq(0,50,5), labels = seq(0,50,5))
+
+      if (file.exists("output/fig3a_temp.rda")) {
+      
+        print("Combining plots to create Fig 3 (temperature)...")
     
-    # try combining these plots:
-    p3a <- load("output/fig3a.rda")
-    p3b <- load("output/fig3b.rda")
+        # try combining these plots:
+        load("output/fig3a_temp.rda")
+      
+        fig3_temp <- p3a_temp + p3b_temp + plot_annotation(tag_levels = 'a')
+        ggsave("results/figure3_temp.pdf", plot = fig3_temp, width = 5.5, height = 2.25, units = 'in', scale = 2)
 
-    fig3 <- p3a + p3b + plot_annotation(tag_levels = 'a')
-    ggsave("results/fig3.pdf", plot = fig3, width = 5.5, height = 2.25, units = 'in', scale = 2)
+        file.remove("output/fig3a_temp.rda")
 
+      } else {
+        save(p3b_temp, file = "output/fig3b_temp.rda")
+      }
+    }
   }
-
-# end plotting section
+  # end plotting section
 }
 
 
 if (choropleths) {
 
 
-  for (shape in names(shapefile_list)) {
-    s <- read_sf(shapefile_list[shape])
-    print(names(s))
-  }
-  # > names(shapefile_list)
-  # [1] "ncra"            "nrm_clust"       "nrm_clust_sub"   "nrm_clust_super" "state"
-  if (clustering == "nrm_clust") {
-    label_col <- sym("NRM_cluster_label")
-    category_col <- sym("NRM_cluster_name")
-    fname_prefix <- "NRM_cluster"
-  }
-  if (clustering == "nrm_clust_sub") {
-    label_col <- sym("NRM_subcluster_label")
-    category_col <- sym("NRM_subcluster_name")
-    fname_prefix <- "NRM_subcluster"
-  }
-  if (clustering == "nrm_clust_super") {
-    label_col <- sym("NRM_supercluster_label")
-    category_col <- sym("NRM_supercluster_name")
-    fname_prefix <- "NRM_supercluster"
-  }
-  if (clustering == "state") {
-    label_col <- sym("State_label")
-    category_col <- sym("State_name")
-    s_col <- sym("label")
-    fname_prefix <- "State"
-  }
-  if (clustering == "ncra") {
-    label_col <- sym("NCRA_label")
-    category_col <- sym("NCRA_name")
-    fname_prefix <- "NCRA"
+  for (clustering in names(shapefile_list)) {
+
+    s <- read_sf(shapefile_list[clustering])
+
+    if (clustering == "nrm_clust") {
+      label_col <- sym("NRM_cluster_label")
+      category_col <- sym("NRM_cluster_name")
+      fname_prefix <- "NRM_cluster"
+    }
+    if (clustering == "nrm_clust_sub") {
+      label_col <- sym("NRM_subcluster_label")
+      category_col <- sym("NRM_subcluster_name")
+      fname_prefix <- "NRM_subcluster"
+    }
+    if (clustering == "nrm_clust_super") {
+      label_col <- sym("NRM_supercluster_label")
+      category_col <- sym("NRM_supercluster_name")
+      fname_prefix <- "NRM_supercluster"
+    }
+    if (clustering == "state") {
+      label_col <- sym("State_label")
+      category_col <- sym("State_name")
+      s_col <- sym("label")
+      fname_prefix <- "State"
+    }
+    if (clustering == "ncra") {
+      label_col <- sym("NCRA_label")
+      category_col <- sym("NCRA_name")
+      fname_prefix <- "NCRA"
+    }
   }
 
 
-  print(shape)
-  s <- read_sf(shapefile_list[shape])
+  # print(clustering)
+  # s <- read_sf(shapefile_list[clustering])
   # create summary spatial statistics
-  stats_spatial <- test_summaries_temperature %>%
+  stats_spatial <- test_summaries %>%
+  # stats_spatial <- test_summaries_temperature %>%
     group_by(!!label_col, !!category_col) %>%
     {if (period_type == "Seasonal")
       group_by(., Season, .add = TRUE) else . } %>%
@@ -606,49 +643,56 @@ if (choropleths) {
 
   range_lim <- max(abs(min(stats_spatial$mean_trend)), abs(max(stats_spatial$mean_trend)))
 
-  choropleth_plot <-
-    stats_spatial %>%
-    left_join(s, by = join_by(!!label_col == "code")) %>%
-    st_as_sf() %>%
-    ggplot() +
-    # colour in land masses outside Aus
-    annotation_map(map_data("worldHires"), col = "grey25", alpha = 0.20) +
-    geom_sf(aes(fill = mean_trend)) +
-      scale_fill_paletteer_c(palette = "ggthemes::Red-Blue-White Diverging", direction = 1,
-                        name = "Mean trend\n(% of mean\nper decade)",
-                        limits = c(-1*range_lim, range_lim)) +
-    coord_sf(xlim = aus_lon_limits, ylim = aus_lat_limits, crs = sf::st_crs(4326)) +
-    # add coastline for Aus over the top of fill
-    annotation_map(map_data("worldHires"), col = "grey25", alpha = 0) +
-    geom_sf_label(aes(label = paste(!!label_col, mean_trend, "\nn =", n)), size = 3) +
-    theme_bw() +
-      labs(y = "Latitude", x = "Longitude") +
-    facet_wrap(~ Season)
+  # choropleth_plot <-
+  #   stats_spatial %>%
+  #   left_join(s, by = join_by(!!label_col == "code")) %>%
+  #   st_as_sf() %>%
+  #   ggplot() +
+  #   # colour in land masses outside Aus
+  #   annotation_map(map_data("worldHires"), col = "grey25", alpha = 0.20) +
+  #   geom_sf(aes(fill = mean_trend)) +
+  #     scale_fill_paletteer_c(palette = "scico::vik", direction = -1,
+  #                       name = "Mean trend\n(% of mean\nper decade)",
+  #                       limits = c(-1*range_lim, range_lim)) +
+  #   coord_sf(xlim = aus_lon_limits, ylim = aus_lat_limits, crs = sf::st_crs(4326)) +
+  #   # add coastline for Aus over the top of fill
+  #   annotation_map(map_data("worldHires"), col = "grey25", alpha = 0) +
+  #   geom_sf_label(aes(label = paste(!!label_col, mean_trend, "\nn =", n)), size = 3) +
+  #   theme_bw() +
+  #     labs(y = "Latitude", x = "Longitude")
+  
+  #   if (period_type == "Seasonal") choropleth_plot <- choropleth_plot + facet_wrap(~ Season)
 
-  ggsave(paste0('results/trends_for_', fname_prefix, '_regions.pdf'), plot = choropleth_plot, width = 5.5, height = 4.5)
+  # ggsave(paste0('results/trends_for_', fname_prefix, '_regions_', period_type, '.pdf'), plot = choropleth_plot, width = 5.5, height = 4.5)
   
   ########################################################################################
   ### NRM cluster choropleth plot:  ######################################################
   ########################################################################################
-  clusters_plot <- 
-    stats_spatial %>%
-    left_join(s, by = join_by(!!label_col == "code")) %>%
-    st_as_sf() %>%
-    ggplot() +
-      # colour in land masses outside Aus
-      annotation_map(map_data("worldHires"), col = "grey25", alpha = 0.20) +
-      geom_sf(aes(fill = !!label_col))   +
-        scale_fill_paletteer_d(palette = "tidyquant::tq_dark", 
-                          name = "NRM\ncluster") +
-      coord_sf(xlim = aus_lon_limits, ylim = aus_lat_limits, crs = sf::st_crs(4326)) +
-      # add coastline for Aus over the top of fill
-      annotation_map(map_data("worldHires"), col = "grey25", alpha = 0) +
-      geom_sf_label(aes(label = paste(!!label_col)), size = 3) +
-      theme_bw(base_size = 7) +
-      labs(y = "Latitude", x = "Longitude") 
+  clusters_filename <- paste0('results/figure2_', fname_prefix, '_regions.pdf')
+
+  if (!file.exists(clusters_filename)) {
     
+    clusters_plot <- 
+      stats_spatial %>%
+      left_join(s, by = join_by(!!label_col == "code")) %>%
+      st_as_sf() %>%
+      ggplot() +
+        # colour in land masses outside Aus
+        annotation_map(map_data("worldHires"), col = "grey25", alpha = 0.20) +
+        geom_sf(aes(fill = !!label_col))   +
+          scale_fill_paletteer_d(palette = "tidyquant::tq_dark", 
+                            name = "NRM\ncluster") +
+        coord_sf(xlim = aus_lon_limits, ylim = aus_lat_limits, crs = sf::st_crs(4326)) +
+        # add coastline for Aus over the top of fill
+        annotation_map(map_data("worldHires"), col = "grey25", alpha = 0) +
+        geom_sf_label(aes(label = paste(!!label_col)), size = 3) +
+        theme_bw(base_size = 7) +
+        labs(y = "Latitude", x = "Longitude") 
+      
     # clusters_plot
-    ggsave('results/', fname_prefix, '_regions.pdf', plot = clusters_plot, width = 5.5, height = 4.5)
+    ggsave(clusters_filename, plot = clusters_plot, width = 5.5, height = 4.5)
+ 
+  }
   
 # end choropleth section
 }

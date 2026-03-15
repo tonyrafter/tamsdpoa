@@ -1,24 +1,27 @@
 # Functions for the tamsdpoa paper
 
 ### Load libraries
-library(tidyverse)
-library(maps)
-library(mapdata)
-library(patchwork)
-library(timeplyr)
-library(ggrepel)
-library(broom)
-library(gt)
-library(knitr)
-library(scales)
-library(paletteer)
-library(zoo)
-library(sf)
-sf_use_s2(FALSE)
-library(slider)
-library(ggrepel)
-library(legendry)
-library(forcats)
+print("Loading libraries...")
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(maps)
+  library(mapdata)
+  library(patchwork)
+  library(timeplyr)
+  library(ggrepel)
+  library(broom)
+  library(gt)
+  library(knitr)
+  library(scales)
+  library(paletteer)
+  library(zoo)
+  library(sf)
+  sf_use_s2(FALSE)
+  library(slider)
+  library(ggrepel)
+  library(forcats)
+})
+print("Libraries loaded.")
 
 
 
@@ -98,14 +101,14 @@ filter_stations <- function(df = ts_gtN_80pc, recordlength = record_length,
   recordlength <- as.numeric(recordlength)
 
   # Filter the data by record length and period type
-  df %>% ungroup() %>%
+  df_mod <- df %>% ungroup() %>%
     {
       # If period type is annual, group the data by station and year
-      if (period_type == "Annual") group_by(., Station, Year) else 
+      if (period_type == "Annual") group_by(., Station) else 
         # If period type is seasonal, group the data by season, station, and year
-        if (period_type == "Seasonal") group_by(., Season, Station, Year) else
+        if (period_type == "Seasonal") group_by(., Season, Station) else
           # If period type is monthly, group the data by month, station, and year
-          if (period_type == "Monthly") group_by(., Month, Station, Year) else .
+          if (period_type == "Monthly") group_by(., Month, Station) else .
     } %>%
     # Arrange the data by station and year
     arrange(Station, Year) %>%
@@ -119,6 +122,9 @@ filter_stations <- function(df = ts_gtN_80pc, recordlength = record_length,
     relocate(Station) %>%
     # Filter the data by the minimum number of years required
     filter(n_years >= recordlength)
+
+  # Return the filtered data
+  df_mod
 
 }
 

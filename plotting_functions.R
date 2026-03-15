@@ -2,12 +2,12 @@
 
 ### Load libraries
 library(tidyverse)
-
-
-
-library(ggplot2)
 library(gtable)
 library(grid)
+library(vroom)
+library(paletteer)
+library(scico)
+library(patchwork)
 
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -73,60 +73,6 @@ as_ggplot <- function(x){
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-my_triangle_colourbar <- function(...) {
-  guide <- guide_colourbar(...)
-  class(guide) <- c("my_triangle_colourbar", class(guide))
-  guide
-}
-
-guide_gengrob.my_triangle_colourbar <- function(...) {
-  # First draw normal colourbar
-  guide <- NextMethod()
-  # Extract bar / colours
-  is_bar <- grep("^bar$", guide$layout$name)
-  bar <- guide$grobs[[is_bar]]
-  extremes <- c(bar$raster[1], bar$raster[length(bar$raster)])
-  # Extract size
-  width  <- guide$widths[guide$layout$l[is_bar]]
-  height <- guide$heights[guide$layout$t[is_bar]]
-  short  <- min(convertUnit(width, "cm",  valueOnly = TRUE),
-                convertUnit(height, "cm", valueOnly = TRUE))
-  # Make space for triangles
-  guide <- gtable_add_rows(guide, unit(short, "cm"),
-                           guide$layout$t[is_bar] - 1)
-  guide <- gtable_add_rows(guide, unit(short, "cm"),
-                           guide$layout$t[is_bar])
-  
-  # Draw triangles
-  top <- polygonGrob(
-    x = unit(c(0, 0.5, 1), "npc"),
-    y = unit(c(0, 1, 0), "npc"),
-    gp = gpar(fill = extremes[1], col = NA)
-  )
-  bottom <- polygonGrob(
-    x = unit(c(0, 0.5, 1), "npc"),
-    y = unit(c(1, 0, 1), "npc"),
-    gp = gpar(fill = extremes[2], col = NA)
-  )
-  # Add triangles to guide
-  guide <- gtable_add_grob(
-    guide, top, 
-    t = guide$layout$t[is_bar] - 1,
-    l = guide$layout$l[is_bar]
-  )
-  guide <- gtable_add_grob(
-    guide, bottom,
-    t = guide$layout$t[is_bar] + 1,
-    l = guide$layout$l[is_bar]
-  )
-  
-  return(guide)
-}
-
-
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 trend_bars <- function(df) {
   df %>%
   mutate(n_pos_non_sig_pc = if_else(n_pos_sig_pc > 2.5, 2.5, n_pos_sig_pc),
@@ -166,8 +112,6 @@ trend_bars <- function(df) {
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-
 trend_matrix_plot_by_domain_binned <- function(df, accum = c(1, 3, 6, 12, 24), 
                               seas = c("Annual", "DJF", "MAM", "JJA", "SON"),
                               min_years = 10, max_years = Inf, scaling = 7,
@@ -188,10 +132,6 @@ trend_matrix_plot_by_domain_binned <- function(df, accum = c(1, 3, 6, 12, 24),
 
   require(tidyverse)
   require(scico)
-  require(legendry)
-
-
-  # source('my_triangle_colourbar')
 
   # match args:
   accum <- match.arg(as.character(accum[1]), choices = c(1, 3, 6, 12, 24))
@@ -286,7 +226,7 @@ trend_matrix_plot_by_domain_binned <- function(df, accum = c(1, 3, 6, 12, 24),
     if (domains == "state") {
       facet_levels <- c("WA", "NT", "QLD", "SA", "NSW", "ACT", "TAS", "VIC", "other")
     }
-}
+  }
   if (facet_by == "season") {
     # also need to filter one _domain_ only
     facet_var <- sym(facet_by)
@@ -336,15 +276,13 @@ trend_matrix_plot_by_domain_binned <- function(df, accum = c(1, 3, 6, 12, 24),
   # create plot
   p1 <- table_input %>% 
     ggplot(aes(x = !!xvar, y = !!yvar, fill = !!fillvar)) +
-  
-      geom_tile(width = 1, height = 1) +
+    geom_tile(width = 1, height = 1) +
     scale_fill_stepsn(
       colours = custom_palette,
       breaks = lim_breaks,
-      limits = lim_range) + 
-      coord_fixed() + 
-      labs(x = xlabel, y = ylabel, 
-      fill = fill_label) +
+      limits = lim_range) +
+    coord_fixed() + 
+    labs(x = xlabel, y = ylabel, fill = fill_label) +
     facet_wrap(vars(factor({{facet_var}}, levels = facet_levels)))
     # add title if requested
   if (title == TRUE) {
