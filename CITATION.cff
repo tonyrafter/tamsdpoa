@@ -1,0 +1,24 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  tamsdpoa: Trends in Annual Maximum Sub-daily to Daily Precipitation Over Australia [Code].
+message: Please cite this software using these metadata.
+type: software
+authors:
+  - given-names: Tony
+    family-names: Rafter
+    email: tony.rafter@student.unimelb.edu.au
+    affiliation: University of Melbourne
+    orcid: 'https://orcid.org/0000-0001-5009-7283'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.19034987
+    description: >-
+      The Github URL of version 1.0.0 of the tamsdpoa software
+repository-code: 'https://github.com/tonyrafter/tamsdpoa'
+license: CC-BY-4.0
+commit: ec7e21b7d7a7bf7537a8cc0d78688aeb02b80d7e
+version: v1.0.0
+date-released: '2026-03-16'

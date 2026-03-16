@@ -1,6 +1,7 @@
 # tamsdpoa
 
 _**"<u>T</u>rends in <u>A</u>nnual <u>M</u>aximum <u>S</u>ub-daily to <u>D</u>aily <u>P</u>recipitation <u>O</u>ver <u>A</u>ustralia"**_
+[![DOI](https://zenodo.org/badge/1172748318.svg)](https://doi.org/10.5281/zenodo.19034987)
 
 This repository contains code developed in the production of materials created for and contained in the paper titled *"Trends in Annual Maximum Sub-daily to Daily Precipitation Over Australia"*, published in the journal **JGR: Atmospheres**.
 
